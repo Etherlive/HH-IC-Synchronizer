@@ -10,7 +10,7 @@ async void Main()
     Hire_Hop_Interface.Interface.Connections.CookieConnection cookie = new Hire_Hop_Interface.Interface.Connections.CookieConnection();
     await Hire_Hop_Interface.Interface.Authentication.Login(cookie, "odavies@etherlive.co.uk", "SomerSet876!%");
     var r = await SearchResult.SearchForAll(new SearchResult.SearchOptions(), cookie);
-    var vals = r.results.Select(x => new ICompleat.Objects.CustomFields.Field() { Code = x.id.Substring(1), Name = x.job_name }).ToList();
+    var vals = r.results.Select(x => new ICompleat.Objects.CustomFields.Field() { Code = x.id.Substring(1), Name = x.job_name.Replace("&lt;", "").Replace("&gt;", "").Replace("&amp;", "") }).ToList();
     var fields = await ICompleat.Objects.CustomFields.GetCustomFieldsAsync();
     await fields[0].ReplaceValues(vals);
     Console.WriteLine("Done");
