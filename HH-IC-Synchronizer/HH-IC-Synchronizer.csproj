@@ -8,4 +8,9 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\Hire-Hop-Interface-Library\Hire-Hop-Interface\Hire-Hop-Interface.csproj" />
+    <ProjectReference Include="..\ICompleat-Interface-Library\ICompleat\ICompleat.csproj" />
+  </ItemGroup>
+
 </Project>

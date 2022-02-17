@@ -1,0 +1,6 @@
+[submodule "Hire-Hop-Interface-Library"]
+	path = Hire-Hop-Interface-Library
+	url = https://github.com/Etherlive/Hire-Hop-Interface-Library
+[submodule "ICompleat-Interface-Library"]
+	path = ICompleat-Interface-Library
+	url = https://github.com/Etherlive/ICompleat-Interface-Library

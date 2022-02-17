@@ -5,6 +5,10 @@ VisualStudioVersion = 17.1.32210.238
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HH-IC-Synchronizer", "HH-IC-Synchronizer\HH-IC-Synchronizer.csproj", "{D0DEFAA4-52F4-4E76-A3E4-299B8D49979D}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Hire-Hop-Interface", "Hire-Hop-Interface-Library\Hire-Hop-Interface\Hire-Hop-Interface.csproj", "{E26CEBF7-0D5F-480C-82EA-704BD0EEA50B}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ICompleat", "ICompleat-Interface-Library\ICompleat\ICompleat.csproj", "{39CF45D3-8392-44FE-8E60-7C99651E260E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +19,14 @@ Global
 		{D0DEFAA4-52F4-4E76-A3E4-299B8D49979D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D0DEFAA4-52F4-4E76-A3E4-299B8D49979D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D0DEFAA4-52F4-4E76-A3E4-299B8D49979D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E26CEBF7-0D5F-480C-82EA-704BD0EEA50B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E26CEBF7-0D5F-480C-82EA-704BD0EEA50B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E26CEBF7-0D5F-480C-82EA-704BD0EEA50B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E26CEBF7-0D5F-480C-82EA-704BD0EEA50B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{39CF45D3-8392-44FE-8E60-7C99651E260E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{39CF45D3-8392-44FE-8E60-7C99651E260E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{39CF45D3-8392-44FE-8E60-7C99651E260E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{39CF45D3-8392-44FE-8E60-7C99651E260E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
