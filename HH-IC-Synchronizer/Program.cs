@@ -11,7 +11,7 @@ async Task Main()
     Console.WriteLine($"Sync Started At {start.ToString("dd/MM/yyyy HH/mm/ss")}");
 
     Hire_Hop_Interface.Interface.Connections.CookieConnection cookie = new Hire_Hop_Interface.Interface.Connections.CookieConnection();
-    await Hire_Hop_Interface.Interface.Authentication.Login(cookie, "odavies@etherlive.co.uk", "SomerSet876!%");
+    await Hire_Hop_Interface.Interface.Authentication.Login(cookie, HH_IC_Synchronizer.Config.hh_email, HH_IC_Synchronizer.Config.hh_pword);
 
     Console.WriteLine("HH Login Complete");
 
