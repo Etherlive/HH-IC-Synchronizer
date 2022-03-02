@@ -56,11 +56,12 @@ void LogUnmatchableSupplierNames(IEnumerable<Transaction> POsWithoutSyncedSuppli
 
 async Task SyncPOs()
 {
+    Console.WriteLine("Fetching Transactions, Suppliers And Retrieving Contacts...");
     var r = await ICompleat.Objects.Transaction.GetTransactionsUntillAllAsync();
     var c = await Hire_Hop_Interface.Objects.Contact.SearchForAll(cookie);
     var s = await ICompleat.Objects.Supplier.GetSuppliersUntillAllAsync();
 
-    Console.WriteLine($"Fetched {r.Length} Transactions From IC");
+    Console.WriteLine($"Fetched {r.Length} Transactions, {s.Length} Suppliers From IC\nAnd {c.results.Length} Contacts From HH");
 
     var POs = r.Where(x => x.IsOrder);
     var Invoicess = r.Where(x => x.IsInvoice);
@@ -70,28 +71,29 @@ async Task SyncPOs()
             SupplierNameMatch(y.Name, x.SupplierName)
         ));
 
-    try
-    {
-        var suppliersSet = POsWithoutSyncedSupplier.Select(x => s.FirstOrDefault(y => SupplierNameMatch(y.Name, x.SupplierName)));
+    var suppliersSet = POsWithoutSyncedSupplier.Select(x => s.FirstOrDefault(y => SupplierNameMatch(y.Name, x.SupplierName)));
 
-        //LogUnmatchableSupplierNames(POsWithoutSyncedSupplier, suppliersSet);
+    //LogUnmatchableSupplierNames(POsWithoutSyncedSupplier, suppliersSet);
 
-        var suppliersToSync = suppliersSet.Where(x => x != null).DistinctBy(x => x.Code).ToArray();
+    var suppliersToSync = suppliersSet.Where(x => x != null).DistinctBy(x => x.Code).ToArray();
 
-        var supSyncs = suppliersToSync.Select(x => Hire_Hop_Interface.Objects.Contact.CreateNew(cookie, x.Name, $"{x.AddressLine1}\n{x.AddressLine2}\n{x.StateOrCounty}\n{x.PostcodeOrZip}\n{x.Country}", x.Telephone, x.Email)).ToArray();
-        Task.WaitAll(supSyncs);
+    var supSyncs = suppliersToSync.Select(x => Hire_Hop_Interface.Objects.Contact.CreateNew(cookie, x.Name, $"{x.AddressLine1}\n{x.AddressLine2}\n{x.StateOrCounty}\n{x.PostcodeOrZip}\n{x.Country}", x.Telephone, x.Email)).ToArray();
+    Task.WaitAll(supSyncs);
 
-        Console.WriteLine($"Synced {supSyncs.Length} Contacts To HH");
-    }
-    catch (Exception e)
-    {
-        e = e;
-    }
+    Console.WriteLine($"Synced {supSyncs.Length} Contacts To HH");
 }
 
 var t = new Task[] { SyncJobIds(), SyncPOs() };
 
 Task.WaitAll(t);
+
+if (t.Any(x => x.IsFaulted))
+{
+    foreach (Exception e in t.Where(x => x.IsFaulted).Select(x => x.Exception))
+    {
+        Console.WriteLine("An Error Occurred\n" + e.ToString());
+    }
+}
 
 DateTime end = DateTime.Now;
 TimeSpan dur = end - start;
