@@ -21,7 +21,7 @@
     "assign-public-ip"                : true,
     "rule"                            : "HHICSynchronizer",
     "rule-target"                     : "HHICSynchronizer",
-    "schedule-expression"             : "rate(12 hours)",
+    "schedule-expression"             : "rate(1 hour)",
     "cloudwatch-event-role"           : "arn:aws:iam::340058290543:role/ecsEventsRole",
     "desired-count"                   : 1,
     "vstoolkit-deployment-mode"       : "ScheduleTask",
