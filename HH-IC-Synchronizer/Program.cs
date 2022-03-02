@@ -13,7 +13,7 @@ async Task Start()
 
 Start().Wait();
 
-var t = new Task[] { HH_IC_Synchronizer.IDSync.SyncJobIds(cookie), HH_IC_Synchronizer.POSync.SyncPOs(cookie) };
+var t = new Task[] {/* HH_IC_Synchronizer.IDSync.SyncJobIds(cookie), */HH_IC_Synchronizer.POSync.SyncPOs(cookie) };
 
 Task.WaitAll(t);
 

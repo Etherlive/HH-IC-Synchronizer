@@ -1,5 +1,6 @@
 ﻿using Hire_Hop_Interface.Interface.Connections;
 using ICompleat.Objects;
+using System.Text.Json;
 
 namespace HH_IC_Synchronizer
 {
@@ -33,21 +34,41 @@ namespace HH_IC_Synchronizer
         public static async Task SyncPOs(CookieConnection cookie)
         {
             Console.WriteLine("Fetching Transactions, Suppliers And Retrieving Contacts...");
-            var r = await ICompleat.Objects.Transaction.GetTransactionsUntillAllAsync();
-            var c = await Hire_Hop_Interface.Objects.Contact.SearchForAll(cookie);
-            var s = await ICompleat.Objects.Supplier.GetSuppliersUntillAllAsync();
+            var txs = await ICompleat.Objects.Transaction.GetTransactionsUntillAllAsync();
+            var contacts = await Hire_Hop_Interface.Objects.Contact.SearchForAll(cookie);
+            var suppliers = await ICompleat.Objects.Supplier.GetSuppliersUntillAllAsync();
 
-            Console.WriteLine($"Fetched {r.Length} Transactions, {s.Length} Suppliers From IC\nAnd {c.results.Length} Contacts From HH");
+            Console.WriteLine($"Fetched {txs.Length} Transactions, {suppliers.Length} Suppliers From IC\nAnd {contacts.results.Length} Contacts From HH");
 
-            var POs = r.Where(x => x.IsOrder);
-            var Invoicess = r.Where(x => x.IsInvoice);
+            for (int i = 0; i < txs.Length; i++)
+            {
+                try
+                {
+                    await txs[i].LoadDetail();
+                }
+                catch
+                {
+                    Console.WriteLine($"Error Loading {txs[i].Id} - {txs[i].Title}");
+                }
+                if (i % 50 == 0)
+                {
+                    Console.WriteLine($"Tx Detail Loaded {(float)i / txs.Length * 100:0.0}%");
+                }
+            }
 
-            var POsWithoutSyncedSupplier = POs.Where(x => !c.results.Any(
+            Console.WriteLine("Loaded Transaction Detail");
+
+            var txWithJobIds = txs.Where(x => x.JobId != null);
+
+            var POs = txWithJobIds.Where(x => x.IsOrder);
+            var Invoicess = txWithJobIds.Where(x => x.IsInvoice);
+
+            var POsWithoutSyncedSupplier = POs.Where(x => !contacts.results.Any(
                 y => SupplierNameMatch(y.Company, x.SupplierName) ||
                     SupplierNameMatch(y.Name, x.SupplierName)
                 ));
 
-            var suppliersSet = POsWithoutSyncedSupplier.Select(x => s.FirstOrDefault(y => SupplierNameMatch(y.Name, x.SupplierName)));
+            var suppliersSet = POsWithoutSyncedSupplier.Select(x => suppliers.FirstOrDefault(y => SupplierNameMatch(y.Name, x.SupplierName)));
 
             //LogUnmatchableSupplierNames(POsWithoutSyncedSupplier, suppliersSet);
 
@@ -57,6 +78,8 @@ namespace HH_IC_Synchronizer
             Task.WaitAll(supSyncs);
 
             Console.WriteLine($"Synced {supSyncs.Length} Contacts To HH");
+
+            var hhPOs = await Hire_Hop_Interface.Objects.PurchaseOrder.SearchForAll(cookie);
         }
 
         #endregion Methods
