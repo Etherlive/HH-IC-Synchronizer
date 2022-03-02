@@ -34,14 +34,20 @@ async Task SyncJobIds()
 async Task SyncPOs()
 {
     var r = await ICompleat.Objects.Transaction.GetTransactionsUntillAllAsync();
+    var c = await Hire_Hop_Interface.Objects.Contact.SearchForAll(cookie);
 
     Console.WriteLine($"Fetched {r.Length} Transactions From IC");
 
     var POs = r.Where(x => x.IsOrder);
     var Invoicess = r.Where(x => x.IsInvoice);
+
+    var POsWithoutSyncedSupplier = POs.Where(x => !c.results.Any(
+        y => y.Company.Equals(x.SupplierName, StringComparison.InvariantCultureIgnoreCase) ||
+            y.Name.Equals(x.SupplierName, StringComparison.InvariantCultureIgnoreCase)
+        ));
 }
 
-var t = new Task[] { SyncJobIds(), SyncPOs() };
+var t = new Task[] { /*SyncJobIds(),*/ SyncPOs() };
 
 Task.WaitAll(t);
 
