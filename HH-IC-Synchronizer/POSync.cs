@@ -1,5 +1,6 @@
 ﻿using Hire_Hop_Interface.Interface.Connections;
 using ICompleat.Objects;
+using Hire_Hop_Interface.Objects;
 using System.Text.Json;
 
 namespace HH_IC_Synchronizer
@@ -82,13 +83,22 @@ namespace HH_IC_Synchronizer
             var hhPOs = await Hire_Hop_Interface.Objects.PurchaseOrder.SearchForAll(cookie);
 
             var jobIdsOfPOs = txWithJobIds.Select(x => x.JobId).Distinct();
-            var hhPOsforJob = jobIdsOfPOs.Select(x => hhPOs.results.Where(y => y.JobId.ToString() == x));
-            var icPOsforJob = jobIdsOfPOs.Select(x => POs.Where(y => y.JobId.ToString() == x));
 
-            Console.WriteLine($"Grouped {hhPOsforJob.Sum(x => x.Count())} HH POs\nGrouped {icPOsforJob.Sum(x => x.Count())} IC POs");
+            List<PurchaseOrder> newPOs = new List<PurchaseOrder>();
 
-            var newhhPOs = icPOsforJob.SelectMany(x => x).Select(x => Hire_Hop_Interface.Objects.PurchaseOrder.CreateNew(cookie, x.JobId, x.Title, x.PurchaseOrderReference, x.DeliveryDate, x.PaymentDueDate)).ToArray();
-            Task.WaitAll(newhhPOs);
+            foreach (string id in jobIdsOfPOs)
+            {
+                var hhPOsForJob = hhPOs.results.Where(x => x.JobId.ToString() == id);
+                var icPOsForJob = POs.Where(x => x.JobId.ToString() == id);
+
+                var icPOsNotInHH = icPOsForJob.Where(x => hhPOsForJob.Any(y => y.SUPPLIER_REF == x.PurchaseOrderReference));
+
+                var HHSync = icPOsNotInHH.Select(x => PurchaseOrder.CreateNew(cookie, x.JobId, x.Title, x.PurchaseOrderReference, x.CreatedDate, x.DeliveryDate)).ToArray();
+                Task.WaitAll(HHSync);
+                newPOs.AddRange(HHSync.Select(x => x.Result));
+            }
+
+            Console.WriteLine($"Pushed {newPOs.Count} POs To HH");
         }
 
         #endregion Methods
