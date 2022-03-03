@@ -11,6 +11,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ICompleat", "ICompleat-Inte
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ICompleat.Test", "ICompleat-Interface-Library\ICompleat.Test\ICompleat.Test.csproj", "{93D0C44E-C6EB-40FA-A080-3FE400D3E021}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Test", "Hire-Hop-Interface-Library\Test\Test.csproj", "{CFE560D3-3A93-48A2-BC47-B220E70D44D2}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -33,6 +35,10 @@ Global
 		{93D0C44E-C6EB-40FA-A080-3FE400D3E021}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{93D0C44E-C6EB-40FA-A080-3FE400D3E021}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{93D0C44E-C6EB-40FA-A080-3FE400D3E021}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CFE560D3-3A93-48A2-BC47-B220E70D44D2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CFE560D3-3A93-48A2-BC47-B220E70D44D2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CFE560D3-3A93-48A2-BC47-B220E70D44D2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CFE560D3-3A93-48A2-BC47-B220E70D44D2}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

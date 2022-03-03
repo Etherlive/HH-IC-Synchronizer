@@ -80,6 +80,15 @@ namespace HH_IC_Synchronizer
             Console.WriteLine($"Synced {supSyncs.Length} Contacts To HH");
 
             var hhPOs = await Hire_Hop_Interface.Objects.PurchaseOrder.SearchForAll(cookie);
+
+            var jobIdsOfPOs = txWithJobIds.Select(x => x.JobId).Distinct();
+            var hhPOsforJob = jobIdsOfPOs.Select(x => hhPOs.results.Where(y => y.JobId.ToString() == x));
+            var icPOsforJob = jobIdsOfPOs.Select(x => POs.Where(y => y.JobId.ToString() == x));
+
+            Console.WriteLine($"Grouped {hhPOsforJob.Sum(x => x.Count())} HH POs\nGrouped {icPOsforJob.Sum(x => x.Count())} IC POs");
+
+            var newhhPOs = icPOsforJob.SelectMany(x => x).Select(x => Hire_Hop_Interface.Objects.PurchaseOrder.CreateNew(cookie, x.JobId, x.Title, x.PurchaseOrderReference, x.DeliveryDate, x.PaymentDueDate)).ToArray();
+            Task.WaitAll(newhhPOs);
         }
 
         #endregion Methods
