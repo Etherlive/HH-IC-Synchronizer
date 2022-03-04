@@ -84,21 +84,58 @@ namespace HH_IC_Synchronizer
 
             var jobIdsOfPOs = txWithJobIds.Select(x => x.JobId).Distinct();
 
-            List<PurchaseOrder> newPOs = new List<PurchaseOrder>();
+            int statusSynced = 0, posCreated = 0;
 
             foreach (string id in jobIdsOfPOs)
             {
                 var hhPOsForJob = hhPOs.results.Where(x => x.JobId.ToString() == id);
                 var icPOsForJob = POs.Where(x => x.JobId.ToString() == id);
 
-                var icPOsNotInHH = icPOsForJob.Where(x => hhPOsForJob.Any(y => y.SUPPLIER_REF == x.PurchaseOrderReference));
+                var icPOsNotInHH = icPOsForJob.Where(x => !hhPOsForJob.Any(y => y.SUPPLIER_REF == x.PurchaseOrderReference));
 
-                var HHSync = icPOsNotInHH.Select(x => PurchaseOrder.CreateNew(cookie, x.JobId, x.Title, x.PurchaseOrderReference, x.CreatedDate, x.DeliveryDate)).ToArray();
+                var HHSync = icPOsNotInHH.Select(x =>
+                {
+                    var c = contacts.results.FirstOrDefault(y => SupplierNameMatch(y.Company, x.SupplierName) || SupplierNameMatch(y.Name, x.SupplierName));
+                    if (c != null)
+                    {
+                        return PurchaseOrder.CreateNew(cookie, x.JobId, x.Title, x.PurchaseOrderReference, c.Id, x.CreatedDate, x.DeliveryDate);
+                    }
+                    return null;
+                }).Where(x => x != null).ToArray();
+
                 Task.WaitAll(HHSync);
-                newPOs.AddRange(HHSync.Select(x => x.Result));
+                var newPOs = HHSync.Select(x => x.Result);
+
+                posCreated += newPOs.Count();
+
+                var POsToSyncStatus = hhPOsForJob.Concat(newPOs);
+
+                foreach (PurchaseOrder order in POsToSyncStatus)
+                {
+                    var matchedOrder = icPOsForJob.FirstOrDefault(x => x.PurchaseOrderReference == order.SUPPLIER_REF);
+
+                    if (matchedOrder != null)
+                    {
+                        int status = 8;
+
+                        if (matchedOrder.IsApproved) status = 2;
+                        else if (matchedOrder.IsSaved) status = 0;
+                        else if (matchedOrder.IsPending) status = 1;
+
+                        try
+                        {
+                            await order.UpdateStatus(cookie, status);
+                            statusSynced++;
+                        }
+                        catch (Exception e)
+                        {
+                            Console.WriteLine($"Updating PO {order.desc} - {order.ID} Failed With Exception: {e.ToString()}");
+                        }
+                    }
+                }
             }
 
-            Console.WriteLine($"Pushed {newPOs.Count} POs To HH");
+            Console.WriteLine($"Pushed {posCreated} New POs and Updated {statusSynced} PO Status\'");
         }
 
         #endregion Methods
