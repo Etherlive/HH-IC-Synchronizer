@@ -38,8 +38,9 @@ namespace HH_IC_Synchronizer
             var txs = await ICompleat.Objects.Transaction.GetTransactionsUntillAllAsync();
             var contacts = await Hire_Hop_Interface.Objects.Contact.SearchForAll(cookie);
             var suppliers = await ICompleat.Objects.Supplier.GetSuppliersUntillAllAsync();
+            var hhPOs = await Hire_Hop_Interface.Objects.PurchaseOrder.SearchForAll(cookie);
 
-            Console.WriteLine($"Fetched {txs.Length} Transactions, {suppliers.Length} Suppliers From IC\nAnd {contacts.results.Length} Contacts From HH");
+            Console.WriteLine($"Fetched {txs.Length} Transactions, {suppliers.Length} Suppliers From IC\nAnd {contacts.results.Length} Contacts, {hhPOs.results.Length} PO\'s From HH");
 
             for (int i = 0; i < txs.Length; i++)
             {
@@ -80,8 +81,6 @@ namespace HH_IC_Synchronizer
 
             Console.WriteLine($"Synced {supSyncs.Length} Contacts To HH");
 
-            var hhPOs = await Hire_Hop_Interface.Objects.PurchaseOrder.SearchForAll(cookie);
-
             var jobIdsOfPOs = txWithJobIds.Select(x => x.JobId).Distinct();
 
             int statusSynced = 0, posCreated = 0;
@@ -91,14 +90,14 @@ namespace HH_IC_Synchronizer
                 var hhPOsForJob = hhPOs.results.Where(x => x.JobId.ToString() == id);
                 var icPOsForJob = POs.Where(x => x.JobId.ToString() == id);
 
-                var icPOsNotInHH = icPOsForJob.Where(x => !hhPOsForJob.Any(y => y.SUPPLIER_REF == x.PurchaseOrderReference));
+                var icPOsNotInHH = icPOsForJob.Where(x => !hhPOsForJob.Any(y => y.SUPPLIER_REF == x.IdentifierReference));
 
                 var HHSync = icPOsNotInHH.Select(x =>
                 {
                     var c = contacts.results.FirstOrDefault(y => SupplierNameMatch(y.Company, x.SupplierName) || SupplierNameMatch(y.Name, x.SupplierName));
                     if (c != null)
                     {
-                        return PurchaseOrder.CreateNew(cookie, x.JobId, x.Title, x.PurchaseOrderReference, c.Id, x.CreatedDate, x.DeliveryDate);
+                        return PurchaseOrder.CreateNew(cookie, x.JobId, x.Title, x.IdentifierReference, c.Id, x.CreatedDate, x.DeliveryDate);
                     }
                     return null;
                 }).Where(x => x != null).ToArray();
@@ -112,10 +111,13 @@ namespace HH_IC_Synchronizer
 
                 foreach (PurchaseOrder order in POsToSyncStatus)
                 {
-                    var matchedOrder = icPOsForJob.FirstOrDefault(x => x.PurchaseOrderReference == order.SUPPLIER_REF);
+                    var matchedOrder = icPOsForJob.FirstOrDefault(x => x.IdentifierReference == order.SUPPLIER_REF);
 
                     if (matchedOrder != null)
                     {
+                        var addLines = matchedOrder.lines.Select(x => order.AddLineItem(cookie, x.Quantity, x.UnitCost, x.Net, 20, 8, x.Description)).ToArray();
+                        Task.WaitAll(addLines);
+
                         int status = 8;
 
                         if (matchedOrder.IsApproved) status = 2;
