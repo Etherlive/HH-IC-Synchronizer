@@ -24,12 +24,12 @@ namespace IC_HH_PO_Sync
             var unmatchedSupplierNames = unmatchableTx.Select(x => x.SupplierName);
         }
 
-        static bool SupplierNameMatch(string s1, string s2)
+        static bool StringsSimilar(string s1, string s2, int maxLengthDiff = 5)
         {
             if (s1 == null || s2 == null || s1.Length == 0 || s2.Length == 0) return false;
             s1 = s1.Replace("  ", " ");
             s2 = s2.Replace("  ", " ");
-            return s1.Equals(s2, StringComparison.InvariantCultureIgnoreCase) || ((s1.StartsWith(s2) || s2.StartsWith(s1)) && Math.Abs(s1.Length - s2.Length) <= 5);
+            return s1.Equals(s2, StringComparison.InvariantCultureIgnoreCase) || ((s1.StartsWith(s2) || s2.StartsWith(s1)) && Math.Abs(s1.Length - s2.Length) <= maxLengthDiff);
         }
 
         public static async Task SyncPOs(CookieConnection cookie)
@@ -66,11 +66,11 @@ namespace IC_HH_PO_Sync
             var Invoicess = txWithJobIds.Where(x => x.IsInvoice);
 
             var POsWithoutSyncedSupplier = POs.Where(x => !contacts.results.Any(
-                y => SupplierNameMatch(y.Company, x.SupplierName) ||
-                    SupplierNameMatch(y.Name, x.SupplierName)
+                y => StringsSimilar(y.Company, x.SupplierName) ||
+                    StringsSimilar(y.Name, x.SupplierName)
                 ));
 
-            var suppliersSet = POsWithoutSyncedSupplier.Select(x => suppliers.FirstOrDefault(y => SupplierNameMatch(y.Name, x.SupplierName)));
+            var suppliersSet = POsWithoutSyncedSupplier.Select(x => suppliers.FirstOrDefault(y => StringsSimilar(y.Name, x.SupplierName)));
 
             //LogUnmatchableSupplierNames(POsWithoutSyncedSupplier, suppliersSet);
 
@@ -94,7 +94,7 @@ namespace IC_HH_PO_Sync
 
                 var HHSync = icPOsNotInHH.Select(x =>
                 {
-                    var c = contacts.results.FirstOrDefault(y => SupplierNameMatch(y.Company, x.SupplierName) || SupplierNameMatch(y.Name, x.SupplierName));
+                    var c = contacts.results.FirstOrDefault(y => StringsSimilar(y.Company, x.SupplierName) || StringsSimilar(y.Name, x.SupplierName));
                     if (c != null)
                     {
                         return PurchaseOrder.CreateNew(cookie, x.JobId, x.Title, x.IdentifierReference, c.Id, x.CreatedDate, x.DeliveryDate);
@@ -115,7 +115,7 @@ namespace IC_HH_PO_Sync
 
                     if (matchedOrder != null)
                     {
-                        var addLines = matchedOrder.lines.Select(x => order.AddLineItem(cookie, x.Quantity, x.UnitCost, x.Net, 20, 8, x.Description)).ToArray();
+                        var addLines = matchedOrder.lines.Where(x => !order.items.Any(y => StringsSimilar(y.DESCRIPTION, x.Description, 100))).Select(x => order.AddLineItem(cookie, x.Quantity, x.UnitCost, x.Net, 20, 8, x.Description)).ToArray();
                         Task.WaitAll(addLines);
 
                         int status = 8;

@@ -1,0 +1,27 @@
+
+{
+    "region" : "eu-west-1",
+    "profile" : "default",
+    "configuration" : "Release",
+    "image-tag"     : "ichhposync:latest",
+    "docker-build-working-dir" : "",
+    "task-definition-name"     : "ICHHPOSync",
+    "task-cpu"                 : "256",
+    "task-memory"              : "512",
+    "platform-version"         : "LATEST",
+    "task-execution-role"      : "ecsTaskExecutionRole",
+    "container-name"           : "ICHHPOSync",
+    "container-port-mapping"   : "",
+    "container-environment-variables" : "",
+    "cluster"                         : "ic-hh-po-sync",
+    "launch-type"                     : "FARGATE",
+    "launch-subnets"                  : "subnet-891312fd,subnet-d7103191,subnet-43e00426",
+    "launch-security-groups"          : "sg-8133d4e4",
+    "assign-public-ip"                : true,
+    "rule"                            : "ICHHPOSync",
+    "rule-target"                     : "ICHHPOSync",
+    "schedule-expression"             : "rate(1 hour)",
+    "cloudwatch-event-role"           : "arn:aws:iam::340058290543:role/ecsEventsRole",
+    "desired-count"                   : 1,
+    "vstoolkit-deployment-mode"       : "ScheduleTask"
+}
