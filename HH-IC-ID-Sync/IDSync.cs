@@ -1,7 +1,7 @@
 ﻿using Hire_Hop_Interface.Interface.Connections;
 using Hire_Hop_Interface.Objects.JobProject;
 
-namespace HH_IC_Synchronizer
+namespace HH_IC_ID_Sync
 {
     public static class IDSync
     {

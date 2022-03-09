@@ -3,7 +3,7 @@ using ICompleat.Objects;
 using Hire_Hop_Interface.Objects;
 using System.Text.Json;
 
-namespace HH_IC_Synchronizer
+namespace IC_HH_PO_Sync
 {
     public static class POSync
     {
