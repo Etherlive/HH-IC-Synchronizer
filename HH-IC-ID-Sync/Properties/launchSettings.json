@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "HH-IC-ID-Sync": {
+      "commandName": "Project"
+    },
+    "Docker": {
+      "commandName": "Docker"
+    }
+  }
+}

@@ -5,18 +5,18 @@ WORKDIR /app
 
 FROM mcr.microsoft.com/dotnet/sdk:6.0 AS build
 WORKDIR /src
-COPY ["HH-IC-ID-Sync/HH-IC-ID-Sync.csproj", "HH-IC-ID-Sync/"]
+COPY ["IC-HH-PO-Sync/IC-HH-PO-Sync.csproj", "IC-HH-PO-Sync/"]
 COPY ["ICompleat-Interface-Library/ICompleat/ICompleat.csproj", "ICompleat-Interface-Library/ICompleat/"]
 COPY ["Hire-Hop-Interface-Library/Hire-Hop-Interface/Hire-Hop-Interface.csproj", "Hire-Hop-Interface-Library/Hire-Hop-Interface/"]
-RUN dotnet restore "HH-IC-ID-Sync/HH-IC-ID-Sync.csproj"
+RUN dotnet restore "IC-HH-PO-Sync/IC-HH-PO-Sync.csproj"
 COPY . .
-WORKDIR "/src/HH-IC-ID-Sync"
-RUN dotnet build "HH-IC-ID-Sync.csproj" -c Release -o /app/build
+WORKDIR "/src/IC-HH-PO-Sync"
+RUN dotnet build "IC-HH-PO-Sync.csproj" -c Release -o /app/build
 
 FROM build AS publish
-RUN dotnet publish "HH-IC-ID-Sync.csproj" -c Release -o /app/publish
+RUN dotnet publish "IC-HH-PO-Sync.csproj" -c Release -o /app/publish
 
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
-ENTRYPOINT ["dotnet", "HH-IC-ID-Sync.dll"]
+ENTRYPOINT ["dotnet", "IC-HH-PO-Sync.dll"]
