@@ -9,6 +9,18 @@ namespace IC_HH_PO_Sync
     {
         #region Methods
 
+        static async Task LoadTxDetail_s(Transaction t)
+        {
+            try
+            {
+                await t.LoadDetail();
+            }
+            catch
+            {
+                Console.WriteLine($"Error Loading {t.Id} - {t.Title}");
+            }
+        }
+
         static void LogUnmatchableSupplierNames(IEnumerable<ICompleat.Objects.Transaction> POsWithoutSyncedSupplier, IEnumerable<Supplier> suppliersSet)
         {
             int i = 0;
@@ -35,27 +47,26 @@ namespace IC_HH_PO_Sync
         public static async Task SyncPOs(CookieConnection cookie)
         {
             Console.WriteLine("Fetching Transactions, Suppliers And Retrieving Contacts...");
-            var txs = await ICompleat.Objects.Transaction.GetTransactionsUntillAllAsync();
-            var contacts = await Hire_Hop_Interface.Objects.Contact.SearchForAll(cookie);
-            var suppliers = await ICompleat.Objects.Supplier.GetSuppliersUntillAllAsync();
-            var hhPOs = await Hire_Hop_Interface.Objects.PurchaseOrder.SearchForAll(cookie);
+
+            var t_txs = ICompleat.Objects.Transaction.GetTransactionsUntillAllAsync();
+            var t_contacts = Hire_Hop_Interface.Objects.Contact.SearchForAll(cookie);
+            var t_suppliers = ICompleat.Objects.Supplier.GetSuppliersUntillAllAsync();
+            var t_hhPOs = Hire_Hop_Interface.Objects.PurchaseOrder.SearchForAll(cookie);
+
+            Task.WaitAll(new Task[] { t_txs, t_contacts, t_suppliers, t_hhPOs });
+
+            var txs = t_txs.Result;
+            var contacts = t_contacts.Result;
+            var suppliers = t_suppliers.Result;
+            var hhPOs = t_hhPOs.Result;
 
             Console.WriteLine($"Fetched {txs.Length} Transactions, {suppliers.Length} Suppliers From IC\nAnd {contacts.results.Length} Contacts, {hhPOs.results.Length} PO\'s From HH");
 
-            for (int i = 0; i < txs.Length; i++)
+            for (int i = 0; i < txs.Length; i += 100)
             {
-                try
-                {
-                    await txs[i].LoadDetail();
-                }
-                catch
-                {
-                    Console.WriteLine($"Error Loading {txs[i].Id} - {txs[i].Title}");
-                }
-                if (i % 50 == 0)
-                {
-                    Console.WriteLine($"Tx Detail Loaded {(float)i / txs.Length * 100:0.0}%");
-                }
+                var t_detail = txs.Skip(i).Take(100).Select(x => LoadTxDetail_s(x)).ToArray();
+                Task.WaitAll(t_detail);
+                Console.WriteLine($"Tx Detail Loaded {(float)i / txs.Length * 100:0.0}%");
             }
 
             Console.WriteLine("Loaded Transaction Detail");
@@ -109,7 +120,7 @@ namespace IC_HH_PO_Sync
 
                 var POsToSyncStatus = hhPOsForJob.Concat(newPOs);
 
-                foreach (PurchaseOrder order in POsToSyncStatus)
+                foreach (PurchaseOrder order in POsToSyncStatus.Where(x => x != null))
                 {
                     var matchedOrder = icPOsForJob.FirstOrDefault(x => x.IdentifierReference == order.SUPPLIER_REF);
 
