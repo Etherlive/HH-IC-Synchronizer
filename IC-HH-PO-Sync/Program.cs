@@ -8,6 +8,11 @@ async Task Main()
     await Hire_Hop_Interface.Interface.Authentication.Login(cookie, IC_HH_PO_Sync.Config.hh_email, IC_HH_PO_Sync.Config.hh_pword);
     Console.WriteLine("HH Login Complete");
 
+    if (!await Hire_Hop_Interface.Interface.Authentication.ToggleAdmin(cookie))
+    {
+        await Hire_Hop_Interface.Interface.Authentication.ToggleAdmin(cookie);
+    }
+
     await IC_HH_PO_Sync.POSync.SyncPOs(cookie);
 }
 

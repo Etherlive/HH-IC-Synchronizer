@@ -111,7 +111,7 @@ namespace IC_HH_PO_Sync
                         return PurchaseOrder.CreateNew(cookie, x.JobId, x.Title, x.IdentifierReference, c.Id, x.CreatedDate, x.DeliveryDate);
                     }
                     return null;
-                }).Where(x => x != null).ToArray();
+                }).Where(x => x != null).Take(60 - posCreated).ToArray();
 
                 Task.WaitAll(HHSync);
                 var newPOs = HHSync.Select(x => x.Result);
