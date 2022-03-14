@@ -17,6 +17,13 @@ namespace HH_IC_ID_Sync
             var fields = await ICompleat.Objects.CustomFields.GetCustomFieldsAsync();
             await fields[0].ReplaceValues(vals);
 
+            ICompleat.Config._instance.companyId = Config.ic_elth_comp;
+            ICompleat.Config._instance.tenantId = Config.ic_elth_tenn;
+            ICompleat.Config._instance.key = Config.ic_elth_key;
+
+            var fields_2 = await ICompleat.Objects.CustomFields.GetCustomFieldsAsync();
+            await fields_2[0].ReplaceValues(vals);
+
             Console.WriteLine($"Pushed Custom Fields");
         }
 
