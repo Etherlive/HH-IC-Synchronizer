@@ -8,3 +8,5 @@ HH-IC-ID-Sync/bin
 HH-IC-ID-Sync/obj
 HH-IC-ID-Sync/Config.cs
 IC-HH-PO-Sync/Config.cs
+HH-IC-ID-Sync/Auth.cs
+IC-HH-PO-Sync/Auth.cs

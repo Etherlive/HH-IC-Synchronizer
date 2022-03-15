@@ -6,7 +6,7 @@ Hire_Hop_Interface.Interface.Connections.CookieConnection cookie = new Hire_Hop_
 
 async Task Main()
 {
-    await Hire_Hop_Interface.Interface.Authentication.Login(cookie, HH_IC_ID_Sync.Config.hh_email, HH_IC_ID_Sync.Config.hh_pword);
+    await Hire_Hop_Interface.Interface.Authentication.Login(cookie, HH_IC_ID_Sync.Auth.PMY.hh_email, HH_IC_ID_Sync.Auth.PMY.hh_pword);
     Console.WriteLine("HH Login Complete");
 
     await HH_IC_ID_Sync.IDSync.SyncJobIds(cookie);

@@ -14,15 +14,11 @@ namespace HH_IC_ID_Sync
 
             Console.WriteLine($"Fetched {vals.Count} Jobs From HH");
 
-            var fields = await ICompleat.Objects.CustomFields.GetCustomFieldsAsync();
-            await fields[0].ReplaceValues(vals);
+            var fields = await ICompleat.Objects.CustomFields.GetCustomFieldsAsync(Auth.PMY);
+            await fields[0].ReplaceValues(vals, Auth.PMY);
 
-            ICompleat.Config._instance.companyId = Config.ic_elth_comp;
-            ICompleat.Config._instance.tenantId = Config.ic_elth_tenn;
-            ICompleat.Config._instance.key = Config.ic_elth_key;
-
-            var fields_2 = await ICompleat.Objects.CustomFields.GetCustomFieldsAsync();
-            await fields_2[0].ReplaceValues(vals);
+            var fields_2 = await ICompleat.Objects.CustomFields.GetCustomFieldsAsync(Auth.ETHL);
+            await fields_2[0].ReplaceValues(vals, Auth.ETHL);
 
             Console.WriteLine($"Pushed Custom Fields");
         }

@@ -9,11 +9,11 @@ namespace IC_HH_PO_Sync
     {
         #region Methods
 
-        static async Task LoadTxDetail_s(Transaction t)
+        static async Task LoadTxDetail_s(Transaction t, Auth auth)
         {
             try
             {
-                await t.LoadDetail();
+                await t.LoadDetail(auth);
             }
             catch
             {
@@ -44,13 +44,13 @@ namespace IC_HH_PO_Sync
             return s1.Equals(s2, StringComparison.InvariantCultureIgnoreCase) || ((s1.StartsWith(s2) || s2.StartsWith(s1)) && Math.Abs(s1.Length - s2.Length) <= maxLengthDiff);
         }
 
-        public static async Task SyncPOs(CookieConnection cookie)
+        public static async Task SyncPOs(CookieConnection cookie, Auth ic_auth)
         {
             Console.WriteLine("Fetching Transactions, Suppliers And Retrieving Contacts...");
 
-            var t_txs = ICompleat.Objects.Transaction.GetTransactionsUntillAllAsync();
+            var t_txs = ICompleat.Objects.Transaction.GetTransactionsUntillAllAsync(ic_auth);
             var t_contacts = Hire_Hop_Interface.Objects.Contact.SearchForAll(cookie);
-            var t_suppliers = ICompleat.Objects.Supplier.GetSuppliersUntillAllAsync();
+            var t_suppliers = ICompleat.Objects.Supplier.GetSuppliersUntillAllAsync(ic_auth);
             var t_hhPOs = Hire_Hop_Interface.Objects.PurchaseOrder.SearchForAll(cookie);
 
             Task.WaitAll(new Task[] { t_txs, t_contacts, t_suppliers, t_hhPOs });
@@ -64,7 +64,7 @@ namespace IC_HH_PO_Sync
 
             for (int i = 0; i < txs.Length; i += 100)
             {
-                var t_detail = txs.Skip(i).Take(100).Select(x => LoadTxDetail_s(x)).ToArray();
+                var t_detail = txs.Skip(i).Take(100).Select(x => LoadTxDetail_s(x, ic_auth)).ToArray();
                 Task.WaitAll(t_detail);
                 Console.WriteLine($"Tx Detail Loaded {(float)i / txs.Length * 100:0.0}%");
             }
