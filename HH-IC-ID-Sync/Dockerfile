@@ -7,6 +7,7 @@ FROM mcr.microsoft.com/dotnet/sdk:6.0 AS build
 WORKDIR /src
 COPY ["HH-IC-ID-Sync/HH-IC-ID-Sync.csproj", "HH-IC-ID-Sync/"]
 COPY ["ICompleat-Interface-Library/ICompleat/ICompleat.csproj", "ICompleat-Interface-Library/ICompleat/"]
+COPY ["ICompleat-Interface-Library/API-Whisperer/API-Whisperer/API-Whisperer.csproj", "ICompleat-Interface-Library/API-Whisperer/API-Whisperer/"]
 COPY ["Hire-Hop-Interface-Library/Hire-Hop-Interface/Hire-Hop-Interface.csproj", "Hire-Hop-Interface-Library/Hire-Hop-Interface/"]
 RUN dotnet restore "HH-IC-ID-Sync/HH-IC-ID-Sync.csproj"
 COPY . .
