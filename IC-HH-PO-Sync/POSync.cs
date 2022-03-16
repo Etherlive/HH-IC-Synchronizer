@@ -146,8 +146,11 @@ namespace IC_HH_PO_Sync
 
                         try
                         {
-                            await order.UpdateStatus(cookie, status);
-                            statusSynced++;
+                            if (order.STATUS != status)
+                            {
+                                await order.UpdateStatus(cookie, status);
+                                statusSynced++;
+                            }
                         }
                         catch (Exception e)
                         {
