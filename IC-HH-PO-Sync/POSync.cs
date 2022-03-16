@@ -13,18 +13,7 @@ namespace IC_HH_PO_Sync
         {
             var hhPOsCreatedByMe = hhPOs.results.Where(x => x.CREATE_USER == "IC PO Sync");
             Task.WaitAll(hhPOsCreatedByMe.Select(x => x.Delete(cookie)).ToArray());
-        }
-
-        static async Task LoadTxDetail_s(Transaction t, Auth auth)
-        {
-            try
-            {
-                await t.LoadDetail(auth);
-            }
-            catch
-            {
-                Console.WriteLine($"Error Loading {t.Id} - {t.Title}");
-            }
+            Console.WriteLine($"Deleted All {hhPOsCreatedByMe.Count()} POs Created By Sync");
         }
 
         static void LogUnmatchableSupplierNames(IEnumerable<ICompleat.Objects.Transaction> POsWithoutSyncedSupplier, IEnumerable<Supplier> suppliersSet)
@@ -45,9 +34,9 @@ namespace IC_HH_PO_Sync
         static bool StringsSimilar(string s1, string s2, int maxLengthDiff = 5)
         {
             if (s1 == null || s2 == null || s1.Length == 0 || s2.Length == 0) return false;
-            s1 = s1.Replace("  ", " ");
-            s2 = s2.Replace("  ", " ");
-            return s1.Equals(s2, StringComparison.InvariantCultureIgnoreCase) || ((s1.StartsWith(s2) || s2.StartsWith(s1)) && Math.Abs(s1.Length - s2.Length) <= maxLengthDiff);
+            s1 = s1.Replace("  ", " ").ToLower();
+            s2 = s2.Replace("  ", " ").ToLower();
+            return s1 == s2 || ((s1.StartsWith(s2) || s2.StartsWith(s1)) && Math.Abs(s1.Length - s2.Length) <= maxLengthDiff);
         }
 
         public static async Task SyncPOs(CookieConnection cookie, Auth ic_auth)
@@ -66,20 +55,27 @@ namespace IC_HH_PO_Sync
             var suppliers = t_suppliers.Result;
             var hhPOs = t_hhPOs.Result;
 
-            //DeleteAllPOsBySync(hhPOs, cookie);
+            await DeleteAllPOsBySync(hhPOs, cookie);
 
             Console.WriteLine($"Fetched {txs.Length} Transactions, {suppliers.Length} Suppliers From IC\nAnd {contacts.results.Length} Contacts, {hhPOs.results.Length} PO\'s From HH");
 
             for (int i = 0; i < txs.Length; i += 100)
             {
-                var t_detail = txs.Skip(i).Take(100).Select(x => LoadTxDetail_s(x, ic_auth)).ToArray();
+                var t_detail = txs.Skip(i).Take(100).Select(x => x.LoadDetail(ic_auth)).ToArray();
                 Task.WaitAll(t_detail);
+                for (int ii = 0; i < 100; i++)
+                {
+                    if (!t_detail[ii].Result)
+                    {
+                        txs[i + ii] = null;
+                    }
+                }
                 Console.WriteLine($"Tx Detail Loaded {(float)i / txs.Length * 100:0.0}%");
             }
 
             Console.WriteLine("Loaded Transaction Detail");
 
-            var txWithJobIds = txs.Where(x => x.JobId != null);
+            var txWithJobIds = txs.Where(x => x != null && x.JobId != null);
 
             var POs = txWithJobIds.Where(x => x.IsOrder);
             var Invoicess = txWithJobIds.Where(x => x.IsInvoice);
@@ -119,7 +115,7 @@ namespace IC_HH_PO_Sync
                         return PurchaseOrder.CreateNew(cookie, x.JobId, x.Title, x.IdentifierReference, c.Id, x.CreatedDate, x.DeliveryDate);
                     }
                     return null;
-                }).Where(x => x != null).Take(60 - posCreated).ToArray();
+                }).Where(x => x != null)/*.Take(60 - posCreated)*/.ToArray();
 
                 Task.WaitAll(HHSync);
                 var newPOs = HHSync.Select(x => x.Result);
@@ -134,7 +130,7 @@ namespace IC_HH_PO_Sync
 
                     if (matchedOrder != null)
                     {
-                        var addLines = matchedOrder.lines.Where(x => !order.items.Any(y => StringsSimilar(y.DESCRIPTION, x.Description, 100))).Select(x => order.AddLineItem(cookie, x.Quantity, x.UnitCost, x.Net, 20, 8, x.Description)).ToArray();
+                        var addLines = matchedOrder.lines.Where(x => !order.items.Any(y => StringsSimilar(y.DESCRIPTION, x.Description, 1000))).Select(x => order.AddLineItem(cookie, x.Quantity, x.UnitCost, x.Net, 20, 8, x.Description)).ToArray();
                         Task.WaitAll(addLines);
 
                         int status = 8;
