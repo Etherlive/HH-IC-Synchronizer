@@ -9,8 +9,9 @@ namespace IC_HH_PO_Sync
     {
         #region Methods
 
-        private static async Task DeleteAllPOsBySync(SearchCollection<PurchaseOrder> hhPOs, CookieConnection cookie)
+        private static async Task DeleteAllPOsBySync(CookieConnection cookie)
         {
+            var hhPOs = await Hire_Hop_Interface.Objects.PurchaseOrder.SearchForAll(cookie);
             var hhPOsCreatedByMe = hhPOs.results.Where(x => x.CREATE_USER == "IC PO Sync");
             Task.WaitAll(hhPOsCreatedByMe.Select(x => x.Delete(cookie)).ToArray());
             Console.WriteLine($"Deleted All {hhPOsCreatedByMe.Count()} POs Created By Sync");
@@ -34,13 +35,15 @@ namespace IC_HH_PO_Sync
         static bool StringsSimilar(string s1, string s2, int maxLengthDiff = 5)
         {
             if (s1 == null || s2 == null || s1.Length == 0 || s2.Length == 0) return false;
-            s1 = s1.Replace("  ", " ").ToLower();
-            s2 = s2.Replace("  ", " ").ToLower();
+            s1 = s1.Replace("  ", " ").ToLower().Trim();
+            s2 = s2.Replace("  ", " ").ToLower().Trim();
             return s1 == s2 || ((s1.StartsWith(s2) || s2.StartsWith(s1)) && Math.Abs(s1.Length - s2.Length) <= maxLengthDiff);
         }
 
         public static async Task SyncPOs(CookieConnection cookie, Auth ic_auth)
         {
+            //await DeleteAllPOsBySync(cookie);
+
             Console.WriteLine("Fetching Transactions, Suppliers And Retrieving Contacts...");
 
             var t_txs = ICompleat.Objects.Transaction.GetTransactionsUntillAllAsync(ic_auth);
@@ -55,7 +58,7 @@ namespace IC_HH_PO_Sync
             var suppliers = t_suppliers.Result;
             var hhPOs = t_hhPOs.Result;
 
-            await DeleteAllPOsBySync(hhPOs, cookie);
+            //await DeleteAllPOsBySync(hhPOs, cookie);
 
             Console.WriteLine($"Fetched {txs.Length} Transactions, {suppliers.Length} Suppliers From IC\nAnd {contacts.results.Length} Contacts, {hhPOs.results.Length} PO\'s From HH");
 
@@ -98,14 +101,14 @@ namespace IC_HH_PO_Sync
 
             var jobIdsOfPOs = txWithJobIds.Select(x => x.JobId).Distinct();
 
-            int statusSynced = 0, posCreated = 0;
+            int statusSynced = 0, posCreated = 0, lineItemsCreated = 0;
 
             foreach (string id in jobIdsOfPOs)
             {
                 var hhPOsForJob = hhPOs.results.Where(x => x.JobId.ToString() == id);
                 var icPOsForJob = POs.Where(x => x.JobId.ToString() == id);
 
-                var icPOsNotInHH = icPOsForJob.Where(x => !hhPOsForJob.Any(y => y.SUPPLIER_REF == x.IdentifierReference));
+                var icPOsNotInHH = icPOsForJob.Where(x => !hhPOsForJob.Any(y => y.SUPPLIER_REF == x.IdentifierReference)).ToArray();
 
                 var HHSync = icPOsNotInHH.Select(x =>
                 {
@@ -120,6 +123,7 @@ namespace IC_HH_PO_Sync
                 Task.WaitAll(HHSync);
                 var newPOs = HHSync.Select(x => x.Result);
 
+                Console.WriteLine($"Created {newPOs.Count()} POs for Job {id}");
                 posCreated += newPOs.Count();
 
                 var POsToSyncStatus = hhPOsForJob.Concat(newPOs);
@@ -132,6 +136,7 @@ namespace IC_HH_PO_Sync
                     {
                         var addLines = matchedOrder.lines.Where(x => !order.items.Any(y => StringsSimilar(y.DESCRIPTION, x.Description, 1000))).Select(x => order.AddLineItem(cookie, x.Quantity, x.UnitCost, x.Net, 20, 8, x.Description)).ToArray();
                         Task.WaitAll(addLines);
+                        lineItemsCreated += addLines.Length;
 
                         int status = 8;
 
@@ -152,7 +157,7 @@ namespace IC_HH_PO_Sync
                 }
             }
 
-            Console.WriteLine($"Pushed {posCreated} New POs and Updated {statusSynced} PO Status\'");
+            Console.WriteLine($"Pushed {posCreated} New POs\nUpdated {statusSynced} PO Status\'\nAdded {lineItemsCreated} Line Items To POs");
         }
 
         #endregion Methods
