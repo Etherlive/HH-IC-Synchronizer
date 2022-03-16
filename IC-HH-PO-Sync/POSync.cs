@@ -9,6 +9,12 @@ namespace IC_HH_PO_Sync
     {
         #region Methods
 
+        private static async Task DeleteAllPOsBySync(SearchCollection<PurchaseOrder> hhPOs, CookieConnection cookie)
+        {
+            var hhPOsCreatedByMe = hhPOs.results.Where(x => x.CREATE_USER == "IC PO Sync");
+            Task.WaitAll(hhPOsCreatedByMe.Select(x => x.Delete(cookie)).ToArray());
+        }
+
         static async Task LoadTxDetail_s(Transaction t, Auth auth)
         {
             try
@@ -59,6 +65,8 @@ namespace IC_HH_PO_Sync
             var contacts = t_contacts.Result;
             var suppliers = t_suppliers.Result;
             var hhPOs = t_hhPOs.Result;
+
+            //DeleteAllPOsBySync(hhPOs, cookie);
 
             Console.WriteLine($"Fetched {txs.Length} Transactions, {suppliers.Length} Suppliers From IC\nAnd {contacts.results.Length} Contacts, {hhPOs.results.Length} PO\'s From HH");
 
