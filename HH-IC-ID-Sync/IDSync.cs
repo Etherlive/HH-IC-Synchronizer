@@ -1,5 +1,6 @@
 ﻿using Hire_Hop_Interface.Interface.Connections;
 using Hire_Hop_Interface.Objects.JobProject;
+using System.Diagnostics;
 
 namespace HH_IC_ID_Sync
 {
@@ -21,6 +22,13 @@ namespace HH_IC_ID_Sync
             await fields_2[0].ReplaceValues(vals, Auth.ETHL);
 
             Console.WriteLine($"Pushed Custom Fields");
+
+            if (Debugger.IsAttached)
+            {
+                string csv = String.Join('\n', r.results.Select(x => $"{x.id.Substring(1)},{x.job_name}"));
+                File.WriteAllText("./job_ids.csv", csv);
+                Console.WriteLine("Saved Job Ids");
+            }
         }
 
         #endregion Methods
