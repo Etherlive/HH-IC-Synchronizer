@@ -17,6 +17,29 @@ namespace IC_HH_PO_Sync
             Console.WriteLine($"Deleted All {hhPOsCreatedByMe.Count()} POs Created By Sync");
         }
 
+        private static async Task<Transaction[]> GetTransactions(Auth auth)
+        {
+            var txs = await ICompleat.Objects.Transaction.GetTransactionsUntillAllAsync(auth);
+
+            for (int i = 0; i < txs.Length; i += 100)
+            {
+                var t_detail = txs.Skip(i).Take(100).Select(x => x.LoadDetail(auth)).ToArray();
+                Task.WaitAll(t_detail);
+                for (int ii = 0; i < 100; i++)
+                {
+                    if (!t_detail[ii].Result)
+                    {
+                        txs[i + ii] = null;
+                    }
+                }
+                Console.WriteLine($"Tx Detail Loaded {(float)i / txs.Length * 100:0.0}%");
+            }
+
+            Console.WriteLine("Loaded Transaction Detail");
+
+            return txs;
+        }
+
         static void LogUnmatchableSupplierNames(IEnumerable<ICompleat.Objects.Transaction> POsWithoutSyncedSupplier, IEnumerable<Supplier> suppliersSet)
         {
             int i = 0;
@@ -40,45 +63,26 @@ namespace IC_HH_PO_Sync
             return s1 == s2 || ((s1.StartsWith(s2) || s2.StartsWith(s1)) && Math.Abs(s1.Length - s2.Length) <= maxLengthDiff);
         }
 
-        public static async Task SyncPOs(CookieConnection cookie, Auth ic_auth)
+        public static async Task SyncPOs(CookieConnection cookie, Auth pmy_auth, Auth ethl_auth)
         {
             //await DeleteAllPOsBySync(cookie);
 
             Console.WriteLine("Fetching Transactions, Suppliers And Retrieving Contacts...");
 
-            var t_txs = ICompleat.Objects.Transaction.GetTransactionsUntillAllAsync(ic_auth);
+            var t_txs = GetTransactions(pmy_auth);
             var t_contacts = Hire_Hop_Interface.Objects.Contact.SearchForAll(cookie);
-            var t_suppliers = ICompleat.Objects.Supplier.GetSuppliersUntillAllAsync(ic_auth);
+            var t_pmy_suppliers = ICompleat.Objects.Supplier.GetSuppliersUntillAllAsync(pmy_auth);
+            var t_eth_suppliers = ICompleat.Objects.Supplier.GetSuppliersUntillAllAsync(ethl_auth);
             var t_hhPOs = Hire_Hop_Interface.Objects.PurchaseOrder.SearchForAll(cookie);
 
-            Task.WaitAll(new Task[] { t_txs, t_contacts, t_suppliers, t_hhPOs });
+            Task.WaitAll(new Task[] { t_txs, t_contacts, t_pmy_suppliers, t_eth_suppliers, t_hhPOs });
 
-            var txs = t_txs.Result;
+            var txWithJobIds = t_txs.Result.Where(x => x != null && x.JobId != null).ToArray();
             var contacts = t_contacts.Result;
-            var suppliers = t_suppliers.Result;
+            var suppliers = t_eth_suppliers.Result.Concat(t_pmy_suppliers.Result).ToArray();
             var hhPOs = t_hhPOs.Result;
 
-            //await DeleteAllPOsBySync(hhPOs, cookie);
-
-            Console.WriteLine($"Fetched {txs.Length} Transactions, {suppliers.Length} Suppliers From IC\nAnd {contacts.results.Length} Contacts, {hhPOs.results.Length} PO\'s From HH");
-
-            for (int i = 0; i < txs.Length; i += 100)
-            {
-                var t_detail = txs.Skip(i).Take(100).Select(x => x.LoadDetail(ic_auth)).ToArray();
-                Task.WaitAll(t_detail);
-                for (int ii = 0; i < 100; i++)
-                {
-                    if (!t_detail[ii].Result)
-                    {
-                        txs[i + ii] = null;
-                    }
-                }
-                Console.WriteLine($"Tx Detail Loaded {(float)i / txs.Length * 100:0.0}%");
-            }
-
-            Console.WriteLine("Loaded Transaction Detail");
-
-            var txWithJobIds = txs.Where(x => x != null && x.JobId != null);
+            Console.WriteLine($"Fetched {txWithJobIds.Length} Transactions, {suppliers.Length} Suppliers From IC\nAnd {contacts.results.Length} Contacts, {hhPOs.results.Length} PO\'s From HH");
 
             var POs = txWithJobIds.Where(x => x.IsOrder);
             var Invoicess = txWithJobIds.Where(x => x.IsInvoice);

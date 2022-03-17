@@ -13,7 +13,7 @@ async Task Main()
         await Hire_Hop_Interface.Interface.Authentication.ToggleAdmin(cookie);
     }
 
-    await IC_HH_PO_Sync.POSync.SyncPOs(cookie, IC_HH_PO_Sync.Auth.PMY);
+    await IC_HH_PO_Sync.POSync.SyncPOs(cookie, IC_HH_PO_Sync.Auth.PMY, IC_HH_PO_Sync.Auth.ETHL);
 }
 
 Main().Wait();
