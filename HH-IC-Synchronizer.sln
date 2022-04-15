@@ -17,6 +17,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HH-IC-ID-Sync", "HH-IC-ID-S
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "API-Whisperer", "ICompleat-Interface-Library\API-Whisperer\API-Whisperer\API-Whisperer.csproj", "{19730832-EA27-4962-A483-4D25A35216AD}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DataExport", "DataExport\DataExport.csproj", "{E1551AE1-4A92-43BC-9A05-34158D984F63}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -51,6 +53,10 @@ Global
 		{19730832-EA27-4962-A483-4D25A35216AD}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{19730832-EA27-4962-A483-4D25A35216AD}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{19730832-EA27-4962-A483-4D25A35216AD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E1551AE1-4A92-43BC-9A05-34158D984F63}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E1551AE1-4A92-43BC-9A05-34158D984F63}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E1551AE1-4A92-43BC-9A05-34158D984F63}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E1551AE1-4A92-43BC-9A05-34158D984F63}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

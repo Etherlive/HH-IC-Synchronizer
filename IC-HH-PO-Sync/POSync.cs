@@ -65,7 +65,7 @@ namespace IC_HH_PO_Sync
 
         public static async Task SyncPOs(CookieConnection cookie, Auth pmy_auth, Auth ethl_auth)
         {
-            //await DeleteAllPOsBySync(cookie);
+            var k = NominalCodes.HHNominalCodes.Where(x => NominalCodes.ICNominalCodes.Any(y => StringsSimilar(x.Value, y.Value, 10000)));
 
             Console.WriteLine("Fetching Transactions, Suppliers And Retrieving Contacts...");
 
