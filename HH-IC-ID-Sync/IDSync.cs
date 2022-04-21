@@ -16,10 +16,20 @@ namespace HH_IC_ID_Sync
             Console.WriteLine($"Fetched {vals.Count} Jobs From HH");
 
             var fields = await ICompleat.Objects.CustomFields.GetCustomFieldsAsync(Auth.PMY);
-            await fields[0].ReplaceValues(vals, Auth.PMY);
-
             var fields_2 = await ICompleat.Objects.CustomFields.GetCustomFieldsAsync(Auth.ETHL);
-            await fields_2[0].ReplaceValues(vals, Auth.ETHL);
+            var f = fields.FirstOrDefault(x => x.Name.Contains("Job Id - Name"));
+            var f2 = fields_2.FirstOrDefault(x => x.Name.Contains("Job Id - Name"));
+
+            Console.WriteLine("Found Custom Field");
+
+            if (f != null)
+            {
+                await f.ReplaceValues(vals, Auth.PMY);
+            }
+            if (f2 != null)
+            {
+                await f2.ReplaceValues(vals, Auth.ETHL);
+            }
 
             Console.WriteLine($"Pushed Custom Fields");
 
