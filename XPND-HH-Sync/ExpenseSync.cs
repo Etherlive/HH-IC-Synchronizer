@@ -30,6 +30,7 @@ namespace XPND_HH_Sync
                 if (hhPO == null)
                 {
                     hhPO = await PurchaseOrder.CreateNew(cookie, jobId, ExpenseDesc, "", ExpendSupplierID, DateTime.Now, DateTime.Now);
+                    await hhPO.UpdateStatus(cookie,2);
                 }
 
                 var expensesToSync = expensesForJob.Where(x => x.ApprovedOrPaid && !hhPO.items.Any(y => y.MEMO.Contains(x.ExpenseID))).ToArray();
@@ -51,8 +52,9 @@ namespace XPND_HH_Sync
                     memo += $"\r\n{exp.ExpenseNote}\r\n{exp.Attachments}\r\nSynced From Expend {exp.ExpenseID}";
 
                     await hhPO.AddLineItem(cookie, 1, exp.AmountExcTax, exp.AmountExcTax, exp.TaxRate, 8, $"{exp.Person} - {exp.Date.ToShortDateString()} - {exp.ExpenseCategory}", memo, nominalCode);
-                    expensesSynced++;
                 }
+                Console.WriteLine($"Pushed {expensesToSync.Length} Expenses For Job {jobId}");
+                expensesSynced+=expensesToSync.Length;
             }
         }
     }
