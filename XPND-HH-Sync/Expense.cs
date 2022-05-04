@@ -13,6 +13,23 @@ namespace XPND_HH_Sync
         public bool ExpenseSubmitted, Rebilled;
         public DateTime Date;
 
+        public bool JobIsNumerical
+        {
+            get { return int.TryParse(Job, out _); }
+        }
+        public bool ApprovedOrPaid
+        {
+            get { return ExpenseState == "APPROVED" || ExpenseState == "PAID"; }
+        }
+        public bool IsTravel
+        {
+            get { return ExpenseCategory.Contains("Travel"); }
+        }
+        public bool IsFood
+        {
+            get { return ExpenseCategory.Contains("Food"); }
+        }
+
         public Expense(string[] cells)
         {
             float r = -1;

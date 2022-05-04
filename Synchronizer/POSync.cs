@@ -86,7 +86,7 @@ namespace Synchronizer
 
             if (matchedOrder != null)
             {
-                var addLines = matchedOrder.lines.Where(x => !order.items.Any(y => StringsSimilar(y.DESCRIPTION, x.Description, 1000))).Select(x => order.AddLineItem(cookie, x.Quantity, x.UnitCost, x.Net, 20, 8, x.Description)).ToArray();
+                var addLines = matchedOrder.lines.Where(x => !order.items.Any(y => StringsSimilar(y.DESCRIPTION, x.Description, 1000))).Select(x => order.AddLineItem(cookie, x.Quantity, x.UnitCost, x.Net, 20, 8, x.Description, "Imported From IC")).ToArray();
                 Task.WaitAll(addLines);
                 lineItemsCreated += addLines.Length;
 
