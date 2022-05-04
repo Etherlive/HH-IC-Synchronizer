@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "Synchronizer": {
+      "commandName": "Project"
+    },
+    "Docker": {
+      "commandName": "Docker"
+    }
+  }
+}

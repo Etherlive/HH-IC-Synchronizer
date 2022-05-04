@@ -1,0 +1,28 @@
+
+{
+    "region" : "eu-west-1",
+    "profile" : "default",
+    "configuration" : "Release",
+    "image-tag"     : "synchronizer:latest",
+    "docker-build-working-dir" : "",
+    "task-definition-name"     : "Synchronizer",
+    "task-cpu"                 : "256",
+    "task-memory"              : "512",
+    "platform-version"         : "LATEST",
+    "task-definition-task-role" : "arn:aws:iam::340058290543:role/ecsTaskExecutionRole",
+    "task-execution-role"       : "ecsTaskExecutionRole",
+    "container-name"            : "Synchronizer",
+    "container-port-mapping"    : "",
+    "container-environment-variables" : "",
+    "cluster"                         : "synchronizer",
+    "launch-type"                     : "FARGATE",
+    "launch-subnets"                  : "subnet-891312fd,subnet-d7103191,subnet-43e00426",
+    "launch-security-groups"          : "sg-8133d4e4",
+    "assign-public-ip"                : true,
+    "rule"                            : "Synchronizer",
+    "rule-target"                     : "Synchronizer",
+    "schedule-expression"             : "rate(15 minutes)",
+    "cloudwatch-event-role"           : "arn:aws:iam::340058290543:role/ecsEventsRole",
+    "desired-count"                   : 1,
+    "vstoolkit-deployment-mode"       : "ScheduleTask"
+}

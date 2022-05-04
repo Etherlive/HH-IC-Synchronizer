@@ -10,3 +10,5 @@ HH-IC-ID-Sync/Config.cs
 IC-HH-PO-Sync/Config.cs
 HH-IC-ID-Sync/Auth.cs
 IC-HH-PO-Sync/Auth.cs
+Synchronizer/obj
+XPND-HH-Sync/obj
