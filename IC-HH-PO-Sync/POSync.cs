@@ -63,6 +63,56 @@ namespace IC_HH_PO_Sync
             return s1 == s2 || ((s1.StartsWith(s2) || s2.StartsWith(s1)) && Math.Abs(s1.Length - s2.Length) <= maxLengthDiff);
         }
 
+        static async Task<IEnumerable<PurchaseOrder>> PushPOs(SearchCollection<Contact> contacts, Transaction[] icPOs, CookieConnection cookie)
+        {
+            var HHSync = icPOs.Select(x =>
+            {
+                var c = contacts.results.FirstOrDefault(y => StringsSimilar(y.Company, x.SupplierName) || StringsSimilar(y.Name, x.SupplierName));
+                if (c != null)
+                {
+                    return PurchaseOrder.CreateNew(cookie, x.JobId, x.Title, x.PurchaseOrderReference, c.Id, x.CreatedDate, x.DeliveryDate);
+                }
+                return null;
+            }).Where(x => x != null)/*.Take(60 - posCreated)*/.ToArray();
+
+            Task.WaitAll(HHSync);
+            var newPOs = HHSync.Select(x => x.Result);
+            return newPOs;
+        }
+
+        static async Task UpdatePOs(IEnumerable<Transaction> icPOsForJob, PurchaseOrder order, CookieConnection cookie)
+        {
+            var matchedOrder = icPOsForJob.FirstOrDefault(x => x.PurchaseOrderReference == order.SUPPLIER_REF);
+
+            if (matchedOrder != null)
+            {
+                var addLines = matchedOrder.lines.Where(x => !order.items.Any(y => StringsSimilar(y.DESCRIPTION, x.Description, 1000))).Select(x => order.AddLineItem(cookie, x.Quantity, x.UnitCost, x.Net, 20, 8, x.Description)).ToArray();
+                Task.WaitAll(addLines);
+                lineItemsCreated += addLines.Length;
+
+                int status = 8;
+
+                if (matchedOrder.IsApproved) status = 2;
+                else if (matchedOrder.IsSaved) status = 0;
+                else if (matchedOrder.IsPending) status = 1;
+
+                try
+                {
+                    if (order.STATUS != status)
+                    {
+                        await order.UpdateStatus(cookie, status);
+                        statusSynced++;
+                    }
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine($"Updating PO {order.desc} - {order.ID} Failed With Exception: {e.ToString()}");
+                }
+            }
+        }
+
+        static int statusSynced = 0, posCreated = 0, lineItemsCreated = 0;
+
         public static async Task SyncPOs(CookieConnection cookie, Auth pmy_auth, Auth ethl_auth)
         {
             //await DeleteAllPOsBySync(cookie);
@@ -70,6 +120,7 @@ namespace IC_HH_PO_Sync
             Console.WriteLine("Fetching Transactions, Suppliers And Retrieving Contacts...");
 
             var t_txs = GetTransactions(pmy_auth);
+
             var t_contacts = Hire_Hop_Interface.Objects.Contact.SearchForAll(cookie);
             var t_pmy_suppliers = ICompleat.Objects.Supplier.GetSuppliersUntillAllAsync(pmy_auth);
             var t_eth_suppliers = ICompleat.Objects.Supplier.GetSuppliersUntillAllAsync(ethl_auth);
@@ -78,14 +129,17 @@ namespace IC_HH_PO_Sync
             Task.WaitAll(new Task[] { t_txs, t_contacts, t_pmy_suppliers, t_eth_suppliers, t_hhPOs });
 
             var txWithJobIds = t_txs.Result.Where(x => x != null && x.JobId != null).ToArray();
+
+            var txWithUniquePORef = txWithJobIds.Where(x => x.PurchaseOrderReference!=null && !txWithJobIds.Any(y => y.Id != x.Id && y.PurchaseOrderReference == x.PurchaseOrderReference)).ToArray();
+
             var contacts = t_contacts.Result;
             var suppliers = t_eth_suppliers.Result.Concat(t_pmy_suppliers.Result).ToArray();
             var hhPOs = t_hhPOs.Result;
 
             Console.WriteLine($"Fetched {txWithJobIds.Length} Transactions, {suppliers.Length} Suppliers From IC\nAnd {contacts.results.Length} Contacts, {hhPOs.results.Length} PO\'s From HH");
 
-            var POs = txWithJobIds.Where(x => x.IsOrder);
-            var Invoicess = txWithJobIds.Where(x => x.IsInvoice);
+            var POs = txWithUniquePORef.Where(x => x.IsOrder);
+            var Invoicess = txWithUniquePORef.Where(x => x.IsInvoice);
 
             var POsWithoutSyncedSupplier = POs.Where(x => !contacts.results.Any(
                 y => StringsSimilar(y.Company, x.SupplierName) ||
@@ -103,65 +157,24 @@ namespace IC_HH_PO_Sync
 
             Console.WriteLine($"Synced {supSyncs.Length} Contacts To HH");
 
-            var jobIdsOfPOs = txWithJobIds.Select(x => x.JobId).Distinct();
-
-            int statusSynced = 0, posCreated = 0, lineItemsCreated = 0;
+            var jobIdsOfPOs = txWithUniquePORef.Select(x => x.JobId).Distinct();
 
             foreach (string id in jobIdsOfPOs)
             {
                 var hhPOsForJob = hhPOs.results.Where(x => x.JobId.ToString() == id);
                 var icPOsForJob = POs.Where(x => x.JobId.ToString() == id);
 
-                var icPOsNotInHH = icPOsForJob.Where(x => !hhPOsForJob.Any(y => y.SUPPLIER_REF == x.IdentifierReference)).ToArray();
+                var icPOsNotInHH = icPOsForJob.Where(x => !hhPOsForJob.Any(y => y.SUPPLIER_REF == x.PurchaseOrderReference)).ToArray();
 
-                var HHSync = icPOsNotInHH.Select(x =>
-                {
-                    var c = contacts.results.FirstOrDefault(y => StringsSimilar(y.Company, x.SupplierName) || StringsSimilar(y.Name, x.SupplierName));
-                    if (c != null)
-                    {
-                        return PurchaseOrder.CreateNew(cookie, x.JobId, x.Title, x.IdentifierReference, c.Id, x.CreatedDate, x.DeliveryDate);
-                    }
-                    return null;
-                }).Where(x => x != null)/*.Take(60 - posCreated)*/.ToArray();
-
-                Task.WaitAll(HHSync);
-                var newPOs = HHSync.Select(x => x.Result);
+                var newPOs = await PushPOs(contacts, icPOsNotInHH, cookie);
 
                 Console.WriteLine($"Created {newPOs.Count()} POs for Job {id}");
                 posCreated += newPOs.Count();
 
                 var POsToSyncStatus = hhPOsForJob.Concat(newPOs);
 
-                foreach (PurchaseOrder order in POsToSyncStatus.Where(x => x != null))
-                {
-                    var matchedOrder = icPOsForJob.FirstOrDefault(x => x.IdentifierReference == order.SUPPLIER_REF);
-
-                    if (matchedOrder != null)
-                    {
-                        var addLines = matchedOrder.lines.Where(x => !order.items.Any(y => StringsSimilar(y.DESCRIPTION, x.Description, 1000))).Select(x => order.AddLineItem(cookie, x.Quantity, x.UnitCost, x.Net, 20, 8, x.Description)).ToArray();
-                        Task.WaitAll(addLines);
-                        lineItemsCreated += addLines.Length;
-
-                        int status = 8;
-
-                        if (matchedOrder.IsApproved) status = 2;
-                        else if (matchedOrder.IsSaved) status = 0;
-                        else if (matchedOrder.IsPending) status = 1;
-
-                        try
-                        {
-                            if (order.STATUS != status)
-                            {
-                                await order.UpdateStatus(cookie, status);
-                                statusSynced++;
-                            }
-                        }
-                        catch (Exception e)
-                        {
-                            Console.WriteLine($"Updating PO {order.desc} - {order.ID} Failed With Exception: {e.ToString()}");
-                        }
-                    }
-                }
+                var sy = POsToSyncStatus.Where(x => x != null).Select(x => UpdatePOs(icPOsForJob, x, cookie)).ToArray();
+                Task.WaitAll(sy);
             }
 
             Console.WriteLine($"Pushed {posCreated} New POs\nUpdated {statusSynced} PO Status\'\nAdded {lineItemsCreated} Line Items To POs");
