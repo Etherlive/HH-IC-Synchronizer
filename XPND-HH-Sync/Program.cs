@@ -29,6 +29,8 @@ namespace XPND_HH_Sync
             {
                 Console.WriteLine($"Cant Find File {targetFile}.\nTo submit your own please drag and drop the file onto the executable.\nOr place the export file into the same directory as the executable and name it 'export.csv'");
             }
+
+            Console.ReadLine();
         }
 
         static async Task Sync(Expense[] expenses)

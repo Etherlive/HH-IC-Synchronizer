@@ -53,8 +53,8 @@ namespace XPND_HH_Sync
 
                     await hhPO.AddLineItem(cookie, 1, exp.AmountExcTax, exp.AmountExcTax, exp.TaxRate, 8, $"{exp.Person} - {exp.Date.ToShortDateString()} - {exp.ExpenseCategory}", memo, nominalCode);
                 }
-                Console.WriteLine($"Pushed {expensesToSync.Length} Expenses For Job {jobId}");
-                expensesSynced+=expensesToSync.Length;
+                expensesSynced += expensesToSync.Length;
+                Console.WriteLine($"Pushed {expensesToSync.Length} Expenses For Job {jobId} - {expensesSynced/(float)syncableExpenses.Length * 100 : 0:00}%");
             }
         }
     }
