@@ -5,9 +5,12 @@ namespace XPND_HH_Sync
     internal class Program
     {
         static Hire_Hop_Interface.Interface.Connections.CookieConnection cookie = new Hire_Hop_Interface.Interface.Connections.CookieConnection();
+        static Auth auth = XPND_HH_Sync.Auth.PMY;
 
         static void Main(string[] args)
         {
+            auth.LoadFromFile();
+
             string targetFile = args.Length == 0 ? "./export.csv" : args[0];
 
             if (File.Exists(targetFile))
@@ -38,8 +41,16 @@ namespace XPND_HH_Sync
             DateTime start = DateTime.Now;
             Console.WriteLine($"Sync Started At {start.ToString("dd/MM/yyyy HH:mm:ss")}");
 
-            await Hire_Hop_Interface.Interface.Authentication.Login(cookie, XPND_HH_Sync.Auth.PMY.hh_email, XPND_HH_Sync.Auth.PMY.hh_pword);
+            if (!await Hire_Hop_Interface.Interface.Authentication.Login(cookie, auth.hh_email, auth.hh_pword))
+            {
+                Console.WriteLine("Login Failed. Please provide your credentails again.");
+                auth.PromptDetails();
+                await Sync(expenses);
+                return;
+            }
             Console.WriteLine("HH Login Complete");
+
+            auth.SaveDetails();
 
             if (!await Hire_Hop_Interface.Interface.Authentication.ToggleAdmin(cookie))
             {
