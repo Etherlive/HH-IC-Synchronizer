@@ -54,7 +54,14 @@ namespace XPND_HH_Sync
 
             if (!await Hire_Hop_Interface.Interface.Authentication.ToggleAdmin(cookie))
             {
-                await Hire_Hop_Interface.Interface.Authentication.ToggleAdmin(cookie);
+                if (!await Hire_Hop_Interface.Interface.Authentication.ToggleAdmin(cookie))
+                {
+                    Console.WriteLine("Failed To Gain Administrator On HH. Continue Without? Y/N ");
+                    if (!Console.ReadLine().ToLower().Contains("Y"))
+                    {
+                        return;
+                    }
+                }
             }
 
             ExpenseSync.Sync(expenses, cookie).Wait();
