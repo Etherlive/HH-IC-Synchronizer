@@ -23,7 +23,6 @@ namespace XPND_HH_Sync_UI
     /// </summary>
     public partial class MainWindow : Window
     {
-        private string f_name = "./export.csv";
         Hire_Hop_Interface.Interface.Connections.CookieConnection cookie = new Hire_Hop_Interface.Interface.Connections.CookieConnection();
         Auth auth = XPND_HH_Sync.Auth.PMY;
 
@@ -49,6 +48,10 @@ namespace XPND_HH_Sync_UI
                 auth.hh_email = email;
                 auth.hh_pword = password;
                 auth.SaveDetails(remeberPassword: remeber_password.IsChecked.Value);
+
+                var ImportWindow = new Import(cookie);
+                ImportWindow.Show();
+                this.Hide();
             }
             else
             {
@@ -58,21 +61,7 @@ namespace XPND_HH_Sync_UI
 
         private void expend_file_select_Click(object sender, RoutedEventArgs e)
         {
-            Microsoft.Win32.OpenFileDialog FileDlg = new Microsoft.Win32.OpenFileDialog();
-
-            FileDlg.AddExtension = true;
-            FileDlg.DefaultExt = ".csv";
-            FileDlg.FileName = "export";
-            FileDlg.InitialDirectory = Directory.GetCurrentDirectory();
-
-            // Launch OpenFileDialog by calling ShowDialog method
-            Nullable<bool> result = FileDlg.ShowDialog();
-            // Get the selected file name and display in a TextBox. Load content of file in a TextBlock
-            if (result == true)
-            {
-                f_name = FileDlg.FileName;
-                Console.WriteLine($"Selected File Location {f_name}");
-            }
+            
         }
     }
 }
