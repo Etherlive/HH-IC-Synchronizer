@@ -8,4 +8,9 @@
     <UseWPF>true</UseWPF>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\Hire-Hop-Interface-Library\Hire-Hop-Interface\Hire-Hop-Interface.csproj" />
+    <ProjectReference Include="..\XPND-HH-Sync\XPND-HH-Sync.csproj" />
+  </ItemGroup>
+
 </Project>
