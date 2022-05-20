@@ -13,9 +13,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Test", "Hire-Hop-Interface-
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "API-Whisperer", "ICompleat-Interface-Library\API-Whisperer\API-Whisperer\API-Whisperer.csproj", "{19730832-EA27-4962-A483-4D25A35216AD}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "XPND-HH-Sync", "XPND-HH-Sync\XPND-HH-Sync.csproj", "{177ED63A-5652-4F90-8D76-3CC80245335E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "XPND-HH-Sync", "XPND-HH-Sync\XPND-HH-Sync.csproj", "{177ED63A-5652-4F90-8D76-3CC80245335E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Synchronizer", "Synchronizer\Synchronizer.csproj", "{55DD9189-4102-4486-B616-35219391DC64}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Synchronizer", "Synchronizer\Synchronizer.csproj", "{55DD9189-4102-4486-B616-35219391DC64}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "XPND-HH-Sync-UI", "XPND-HH-Sync-UI\XPND-HH-Sync-UI.csproj", "{1AFBB604-6C63-46B2-AC61-A04143D6A3F0}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -51,6 +53,10 @@ Global
 		{55DD9189-4102-4486-B616-35219391DC64}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{55DD9189-4102-4486-B616-35219391DC64}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{55DD9189-4102-4486-B616-35219391DC64}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1AFBB604-6C63-46B2-AC61-A04143D6A3F0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1AFBB604-6C63-46B2-AC61-A04143D6A3F0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1AFBB604-6C63-46B2-AC61-A04143D6A3F0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1AFBB604-6C63-46B2-AC61-A04143D6A3F0}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

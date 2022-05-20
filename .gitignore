@@ -16,3 +16,5 @@ XPND-HH-Sync/bin
 XPND-HH-Sync/Auth.cs
 Synchronizer/bin
 Synchronizer/Auth.cs
+*/bin
+*/obj
